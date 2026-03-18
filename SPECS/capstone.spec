@@ -1,6 +1,6 @@
 Name:           capstone
 Version:        4.0.2
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        A lightweight multi-platform, multi-architecture disassembly framework
 
 %global         gituser         aquynh
@@ -26,6 +26,9 @@ Source0:        https://github.com/%{gituser}/%{gitname}/archive/%{version}.tar.
 # Upstream patch which fixes libcapstone.pc.
 # See: https://github.com/aquynh/capstone/issues/1339
 # Patch1:         0001-Fix-include-path-in-pkg-config-for-Makefile-too-1339.patch
+
+# CVE-2025-68114: Check vsnprintf return value
+Patch0:         CVE-2025-68114-capstone-4.x.patch
 
 %global         common_desc %{expand:
 Capstone is a disassembly framework with the target of becoming the ultimate
@@ -232,6 +235,10 @@ make check LD_LIBRARY_PATH="`pwd`"
 %{_javadir}/
 
 %changelog
+* Thu Mar 12 2026 Jon Maloy <jmaloy@redhat.com> - 4.0.2-11
+- Fix CVE-2025-68114 (memory corruption) and CVE-2025-67873 (heap buffer overflow)
+  Resolves: RHEL-137758
+
 * Fri Sep 02 2022 Miroslav Rezanina <mrezanin@redhat.com> - 4.0.2-10
 - Import to CentOS 9 Stream / RHEL 9
 
