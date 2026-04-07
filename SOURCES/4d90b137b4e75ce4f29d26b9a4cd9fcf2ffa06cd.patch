@@ -1,0 +1,115 @@
+From 4d90b137b4e75ce4f29d26b9a4cd9fcf2ffa06cd Mon Sep 17 00:00:00 2001
+From: Rot127 <45763064+Rot127@users.noreply.github.com>
+Date: Mon, 29 Dec 2025 14:11:15 +0000
+Subject: [PATCH] CVE v5 backports (#2835)
+
+* Backport of 2c7797182a1618be12017d7d41e0b6581d5d529e to v5 branch.
+
+* Check return value of cs_vsnprintf for negative values.
+
+This prevents underflow of SStream.index.
+This bug was reported by Github user Finder16.
+
+* Add overflow check before adding cs_vsnprintf return value.
+
+* Backport of cbef767ab33b82166d263895f24084b75b316df3 into v5.
+
+The overflow was reported by Github user Finder16
+---
+ SStream.c |  6 ++++++
+ SStream.h | 12 +++++++++++-
+ cs.c      | 14 +++++++++-----
+ 3 files changed, 26 insertions(+), 6 deletions(-)
+
+diff --git a/SStream.c b/SStream.c
+index 4a50a14cf9..1e4e37053e 100644
+--- a/SStream.c
++++ b/SStream.c
+@@ -33,6 +33,7 @@ void SStream_concat0(SStream *ss, const char *s)
+ #ifndef CAPSTONE_DIET
+ 	unsigned int len = (unsigned int) strlen(s);
+ 
++	SSTREAM_OVERFLOW_CHECK(ss, len);
+ 	memcpy(ss->buffer + ss->index, s, len);
+ 	ss->index += len;
+ 	ss->buffer[ss->index] = '\0';
+@@ -42,6 +43,7 @@ void SStream_concat0(SStream *ss, const char *s)
+ void SStream_concat1(SStream *ss, const char c)
+ {
+ #ifndef CAPSTONE_DIET
++	SSTREAM_OVERFLOW_CHECK(ss, 1);
+ 	ss->buffer[ss->index] = c;
+ 	ss->index++;
+ 	ss->buffer[ss->index] = '\0';
+@@ -57,6 +59,10 @@ void SStream_concat(SStream *ss, const char *fmt, ...)
+ 	va_start(ap, fmt);
+ 	ret = cs_vsnprintf(ss->buffer + ss->index, sizeof(ss->buffer) - (ss->index + 1), fmt, ap);
+ 	va_end(ap);
++	if (ret < 0) {
++		return;
++	}
++	SSTREAM_OVERFLOW_CHECK(ss, ret);
+ 	ss->index += ret;
+ #endif
+ }
+diff --git a/SStream.h b/SStream.h
+index e70a3141bf..a387ff2c17 100644
+--- a/SStream.h
++++ b/SStream.h
+@@ -6,8 +6,18 @@
+ 
+ #include "include/capstone/platform.h"
+ 
++#define SSTREAM_BUF_LEN 512
++
++#define SSTREAM_OVERFLOW_CHECK(OS, len) \
++	do { \
++		if (OS->index + len + 1 > SSTREAM_BUF_LEN) { \
++			fprintf(stderr, "Buffer overflow caught!\n"); \
++			return; \
++		} \
++	} while (0)
++
+ typedef struct SStream {
+-	char buffer[512];
++	char buffer[SSTREAM_BUF_LEN];
+ 	int index;
+ } SStream;
+ 
+diff --git a/cs.c b/cs.c
+index 1f790a1fd6..59243fd44d 100644
+--- a/cs.c
++++ b/cs.c
+@@ -976,10 +976,13 @@ size_t CAPSTONE_API cs_disasm(csh ud, const uint8_t *buffer, size_t size, uint64
+ 				skipdata_bytes = handle->skipdata_size;
+ 
+ 			// we have to skip some amount of data, depending on arch & mode
+-			insn_cache->id = 0;	// invalid ID for this "data" instruction
++			// invalid ID for this "data" instruction
++			insn_cache->id = 0;
+ 			insn_cache->address = offset;
+-			insn_cache->size = (uint16_t)skipdata_bytes;
+-			memcpy(insn_cache->bytes, buffer, skipdata_bytes);
++			insn_cache->size = (uint16_t)MIN(
++				skipdata_bytes, sizeof(insn_cache->bytes));
++			memcpy(insn_cache->bytes, buffer,
++			       MIN(skipdata_bytes, sizeof(insn_cache->bytes)));
+ #ifdef CAPSTONE_DIET
+ 			insn_cache->mnemonic[0] = '\0';
+ 			insn_cache->op_str[0] = '\0';
+@@ -1181,12 +1184,13 @@ bool CAPSTONE_API cs_disasm_iter(csh ud, const uint8_t **code, size_t *size,
+ 		// we have to skip some amount of data, depending on arch & mode
+ 		insn->id = 0;	// invalid ID for this "data" instruction
+ 		insn->address = *address;
+-		insn->size = (uint16_t)skipdata_bytes;
++		insn->size = (uint16_t)MIN(skipdata_bytes, sizeof(insn->bytes));
++		memcpy(insn->bytes, *code,
++		       MIN(skipdata_bytes, sizeof(insn->bytes)));
+ #ifdef CAPSTONE_DIET
+ 		insn->mnemonic[0] = '\0';
+ 		insn->op_str[0] = '\0';
+ #else
+-		memcpy(insn->bytes, *code, skipdata_bytes);
+ 		strncpy(insn->mnemonic, handle->skipdata_setup.mnemonic,
+ 				sizeof(insn->mnemonic) - 1);
+ 		skipdata_opstr(insn->op_str, *code, skipdata_bytes);

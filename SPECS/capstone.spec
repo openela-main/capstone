@@ -1,6 +1,6 @@
 Name:           capstone
 Version:        5.0.1
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        A lightweight multi-platform, multi-architecture disassembly framework
 License:        BSD-3-Clause AND BSD-4-Clause AND APSL-2.0 AND NCSA AND MIT
 URL:            http://www.capstone-engine.org/
@@ -36,6 +36,9 @@ Patch0:         capstone-5.0.1-platform.patch
 
 # Ocaml binding is not using local path for the includes/links
 Patch1:         capstone-5.0.1-ocaml.patch
+
+# CVE backports (CVE-2025-67873, CVE-2025-68114)
+Patch2:         4d90b137b4e75ce4f29d26b9a4cd9fcf2ffa06cd.patch
 
 
 # Build with python3 package by default
@@ -334,6 +337,12 @@ popd
 
 
 %changelog
+* Wed Mar 11 2026 Jon Maloy <jmaloy@redhat.com> - 5.0.1-7
+- Fix CVE-2025-67873 (heap buffer overflow)
+  Resolves: RHEL-141551
+- Fix CVE-2025-68114 (memory corruption)
+  Resolves: RHEL-137747
+
 * Tue Oct 29 2024 Troy Dawson <tdawson@redhat.com> - 5.0.1-6
 - Bump release for October 2024 mass rebuild:
   Resolves: RHEL-64018
