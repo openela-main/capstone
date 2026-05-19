@@ -1,6 +1,6 @@
 Name:           capstone
 Version:        4.0.2
-Release:        11%{?dist}
+Release:        12%{?dist}
 Summary:        A lightweight multi-platform, multi-architecture disassembly framework
 
 %global         gituser         aquynh
@@ -235,9 +235,13 @@ make check LD_LIBRARY_PATH="`pwd`"
 %{_javadir}/
 
 %changelog
+* Thu Apr 2 2026 Jon Maloy <jmaloy@redhat.com> - 4.0.2-12
+- Rebuild for rhel-9.8
+  Resolves: RHEL-137760
+
 * Thu Mar 12 2026 Jon Maloy <jmaloy@redhat.com> - 4.0.2-11
 - Fix CVE-2025-68114 (memory corruption) and CVE-2025-67873 (heap buffer overflow)
-  Resolves: RHEL-137758
+  Resolves: RHEL-137760
 
 * Fri Sep 02 2022 Miroslav Rezanina <mrezanin@redhat.com> - 4.0.2-10
 - Import to CentOS 9 Stream / RHEL 9
