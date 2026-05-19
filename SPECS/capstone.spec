@@ -1,6 +1,6 @@
 Name:           capstone
 Version:        5.0.1
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        A lightweight multi-platform, multi-architecture disassembly framework
 License:        BSD-3-Clause AND BSD-4-Clause AND APSL-2.0 AND NCSA AND MIT
 URL:            http://www.capstone-engine.org/
@@ -274,7 +274,6 @@ install -D -p -m 0644 bindings/java/%{name}.jar  %{buildroot}/%{_javadir}/%{name
 %endif
 
 
-
 %check
 # ln -s libcapstone.so.5 libcapstone.so
 make check LD_LIBRARY_PATH="`pwd`"
@@ -337,11 +336,14 @@ popd
 
 
 %changelog
-* Wed Mar 11 2026 Jon Maloy <jmaloy@redhat.com> - 5.0.1-7
+* Tue Apr 01 2026 Jon Maloy <jmaloy@redhat.com> - 5.0.1-8
+- Rebuild for rhel-10.2
+
+* Fri Mar 13 2026 Jon Maloy <jmaloy@redhat.com> - 5.0.1-7
 - Fix CVE-2025-67873 (heap buffer overflow)
-  Resolves: RHEL-141551
+  Resolves: RHEL-141553
 - Fix CVE-2025-68114 (memory corruption)
-  Resolves: RHEL-137747
+  Resolves: RHEL-137749
 
 * Tue Oct 29 2024 Troy Dawson <tdawson@redhat.com> - 5.0.1-6
 - Bump release for October 2024 mass rebuild:
