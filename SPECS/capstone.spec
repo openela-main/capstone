@@ -1,6 +1,6 @@
 Name:           capstone
 Version:        4.0.2
-Release:        12%{?dist}
+Release:        13%{?dist}
 Summary:        A lightweight multi-platform, multi-architecture disassembly framework
 
 %global         gituser         aquynh
@@ -235,6 +235,9 @@ make check LD_LIBRARY_PATH="`pwd`"
 %{_javadir}/
 
 %changelog
+* Tue May 26 2026 Jon Maloy <jmaloy@redhat.com> - 4.0.2-13
+- Rebuild for rhel-9.8.z
+
 * Thu Apr 2 2026 Jon Maloy <jmaloy@redhat.com> - 4.0.2-12
 - Rebuild for rhel-9.8
   Resolves: RHEL-137760
